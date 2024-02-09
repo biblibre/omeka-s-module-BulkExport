@@ -55,10 +55,10 @@ abstract class AbstractFieldsJsonWriter extends AbstractFieldsWriter
         $this->handle = fopen($this->filepath, 'w+');
         if (!$this->handle) {
             $this->hasError = true;
-            $this->logger->err(
-                'Unable to open output: {error}.', // @translate
-                ['error' => error_get_last()['message']]
-            );
+            $this->logger->err(sprintf(
+                'Unable to open output: %s.',
+                error_get_last()['message']
+            ));
         }
 
         if (!$this->hasError
@@ -88,10 +88,10 @@ abstract class AbstractFieldsJsonWriter extends AbstractFieldsWriter
         $pos = ftell($this->handle);
         if ($pos === false) {
             $this->hasError = true;
-            $this->logger->err(
-                'Unable to check output: {error}.', // @translate
-                ['error' => error_get_last()['message']]
-            );
+            $this->logger->err(sprintf(
+                'Unable to check output: %s.', // @translate
+                error_get_last()['message']
+            ));
             fclose($this->handle);
             return parent::finalizeOutput();
         }

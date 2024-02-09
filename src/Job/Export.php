@@ -8,8 +8,8 @@ use BulkExport\Interfaces\Parametrizable;
 use BulkExport\Writer\Manager as WriterManager;
 use BulkExport\Writer\WriterInterface;
 use Laminas\Log\Logger;
-use Common\Stdlib\PsrMessage;
 use Omeka\Job\AbstractJob;
+use Omeka\Stdlib\Message;
 
 class Export extends AbstractJob
 {
@@ -56,10 +56,10 @@ class Export extends AbstractJob
         $this->export = $this->api->search('bulk_exports', ['id' => $bulkExportId, 'limit' => 1])->getContent();
         if (!count($this->export)) {
             $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
-            $this->logger->err(
-                'Export record id #{id} does not exist.', // @translate
-                ['id' => $bulkExportId]
-            );
+            $this->logger->err(sprintf(
+                'Export record id #%s does not exist.', // @translate
+                $bulkExportId
+            ));
             return;
         }
 
@@ -83,10 +83,10 @@ class Export extends AbstractJob
         $this->logger->addProcessor($referenceId);
 
         if ($processAsTask) {
-            $this->logger->notice(
-                'Export as task based on export #{export_id}.', // @translate
-                ['export_id' => $bulkExportId]
-            );
+            $this->logger->notice(sprintf(
+                'Export as task based on export #%s.', // @translate
+                $bulkExportId
+            ));
         }
 
         // Make compatible with EasyAdmin tasks, that may use a fake job.
@@ -97,10 +97,10 @@ class Export extends AbstractJob
         $this->writer = $this->getWriter();
         if (!$this->writer) {
             $this->job->setStatus(\Omeka\Entity\Job::STATUS_ERROR);
-            $this->logger->err(
-                'Writer "{writer}" is not available.', // @translate
-                ['writer' => $this->exporter->writerClass()]
-            );
+            $this->logger->err(sprintf(
+                'Writer "%s" is not available.', // @translate
+                $this->exporter->writerClass()
+            ));
             return;
         }
 
@@ -118,9 +118,9 @@ class Export extends AbstractJob
         }
 
         if (!$this->writer->isValid()) {
-            throw new \Omeka\Job\Exception\RuntimeException((string) new PsrMessage(
-                'Export error: {error}', // @translate
-                ['error' => $this->writer->getLastErrorMessage()]
+            throw new \Omeka\Job\Exception\RuntimeException(sprintf(
+                'Export error: %s', // @translate
+                $this->writer->getLastErrorMessage()
             ));
         }
 
@@ -176,20 +176,18 @@ class Export extends AbstractJob
         $fileUrl = $this->export->fileUrl();
         $filesize = $this->export->filesize();
         if (!$fileUrl) {
-            $this->logger->notice(
-                'The export is available locally as specified (size: {size} bytes).', // @translate
-                ['size' => $filesize]
-            );
+            $this->logger->notice(sprintf(
+                'The export is available locally as specified (size: %s bytes).', // @translate
+                $filesize
+            ));
             return $this;
         }
 
-        $this->logger->notice(
-            'The export is available at {link} (size: {size} bytes).', // @translate
-            [
-                'link' => sprintf('<a href="%1$s" download="%2$s" target="_self">%2$s</a>', $fileUrl, basename($filename)),
-                'size' => $filesize,
-            ]
-        );
+        $this->logger->notice(sprintf(
+            'The export is available at %1$s (size: %2$s bytes).', // @translate
+            sprintf('<a href="%1$s" download="%2$s" target="_self">%2$s</a>', $fileUrl, basename($filename)),
+            $filesize
+        ));
 
         return $this;
     }
@@ -296,24 +294,22 @@ class Export extends AbstractJob
         $urlPlugin = $services->get('ControllerPluginManager')->get('url');
         $to = $owner->getEmail();
         $jobId = (int) $this->job->getId();
-        $subject = new PsrMessage(
-            '[Omeka Bulk Export] #{job_id}', // @translate
-            ['job_id' => $jobId]
+        $subject = new Message(
+            '[Omeka Bulk Export] #%s', // @translate
+            $jobId
         );
-        $body = new PsrMessage(
-            'Export ended (job {link_open_job}#{jobId}{link_close}, {link_open_log}logs{link_close}).', // @translate
-            [
-                'link_open_job' => sprintf(
-                    '<a href="%s">',
-                    htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $jobId], ['force_canonical' => true]))
-                ),
-                'jobId' => $jobId,
-                'link_close' => '</a>',
-                'link_open_log' => sprintf(
-                    '<a href="%s">',
-                    htmlspecialchars($urlPlugin->fromRoute('admin/bulk-export/id', ['controller' => 'export', 'action' => 'logs', 'id' => $this->export->id()], ['force_canonical' => true]))
-                ),
-            ]
+        $body = new Message(
+            'Export ended (job %1$s#%2$s%3$s, %4$slogs%3$s).', // @translate
+            sprintf(
+                '<a href="%s">',
+                htmlspecialchars($urlPlugin->fromRoute('admin/id', ['controller' => 'job', 'id' => $jobId], ['force_canonical' => true]))
+            ),
+            $jobId,
+            '</a>',
+            sprintf(
+                '<a href="%s">',
+                htmlspecialchars($urlPlugin->fromRoute('admin/bulk-export/id', ['controller' => 'export', 'action' => 'logs', 'id' => $this->export->id()], ['force_canonical' => true]))
+            ),
         );
         $body->setEscapeHtml(false);
 
@@ -326,7 +322,7 @@ class Export extends AbstractJob
         try {
             $mailer->send($message);
         } catch (\Exception $e) {
-            $this->logger->log(Logger::ERR, new \Omeka\Stdlib\Message(
+            $this->logger->log(Logger::ERR, new Message(
                 'Error when sending email to notify end of process.' // @translate
             ));
         }

@@ -2,7 +2,7 @@
 
 namespace BulkExport\Controller;
 
-use Common\Stdlib\PsrMessage;
+use Omeka\Stdlib\Message;
 
 trait ExporterTrait
 {
@@ -22,9 +22,9 @@ trait ExporterTrait
 
         $format = $this->params()->fromRoute('format');
         if (!$exportFormatter->has($format)) {
-            throw new \Omeka\Mvc\Exception\NotFoundException((string) new PsrMessage(
-                $this->translate('Unsupported format "{format}".'), // @translate
-                ['format' => $format]
+            throw new \Omeka\Mvc\Exception\NotFoundException((string) new Message(
+                $this->translate('Unsupported format "%s".'), // @translate
+                $format
             ));
         }
 

@@ -27,9 +27,7 @@ class Module extends AbstractModule
 
     const NAMESPACE = __NAMESPACE__;
 
-    protected $dependencies = [
-        'Log',
-    ];
+    protected $dependencies = [];
 
     public function init(ModuleManager $moduleManager): void
     {
@@ -83,7 +81,7 @@ class Module extends AbstractModule
             ->allow(
                 $backendRoles,
                 ['BulkExport\Controller\Admin\Export'],
-                ['browse', 'index', 'show', 'logs', 'delete-confirm', 'delete']
+                ['browse', 'index', 'show', 'delete-confirm', 'delete']
             )
             ->allow(
                 $backendRoles,
@@ -150,11 +148,11 @@ class Module extends AbstractModule
         $translator = $services->get('MvcTranslator');
 
         if (!$this->checkDestinationDir($basePath . '/bulk_export')) {
-            $message = new PsrMessage(
-                'The directory "{path}" is not writeable.', // @translate
-                ['path' => $basePath . '/bulk_export']
+            $message = sprintf(
+                $translator->translate('The directory "%s" is not writeable.'),
+                $basePath . '/bulk_export'
             );
-            throw new ModuleCannotInstallException((string) $message->setTranslator($translator));
+            throw new ModuleCannotInstallException($message);
         }
     }
 
@@ -219,7 +217,7 @@ class Module extends AbstractModule
 
         $html .= '<p>';
         $html .= sprintf(
-            $t->translate('All bulk exports will be removed (folder "{folder}").'), // @translate
+            $t->translate('All bulk exports will be removed (folder "%s").'), // @translate
             $basePath . '/bulk_export'
         );
         $html .= '</p>';

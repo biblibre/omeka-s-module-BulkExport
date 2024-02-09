@@ -60,7 +60,7 @@ $hyperlink = $plugins->get('hyperlink');
                         'class' => 'fas fa-cogs o-icon-',
                         'title' => $translate('See params'),
                     ]) ?></li>
-                    <li><?= $hyperlink('', $this->url('admin/bulk-export/id', ['controller' => 'export', 'action' => 'logs', 'id' => $export->id()]), [
+                    <li><?= $hyperlink('', $this->url('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $export->job()->id()]), [
                         'class' => 'fas fa-list o-icon-',
                         'title' => $translate('See logs'),
                     ]) ?></li>

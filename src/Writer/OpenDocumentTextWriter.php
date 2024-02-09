@@ -4,7 +4,6 @@ namespace BulkExport\Writer;
 
 use BulkExport\Form\Writer\TextWriterConfigForm;
 use BulkExport\Traits\OpenDocumentTextTemplateTrait;
-use Common\Stdlib\PsrMessage;
 use PhpOffice\PhpWord;
 
 class OpenDocumentTextWriter extends AbstractFieldsWriter
@@ -20,9 +19,9 @@ class OpenDocumentTextWriter extends AbstractFieldsWriter
     public function isValid(): bool
     {
         if (!extension_loaded('zip') || !extension_loaded('xml')) {
-            $this->lastErrorMessage = new PsrMessage(
-                'To process export of "{label}", the php extensions "zip" and "xml" are required.', // @translate
-                ['label' => $this->getLabel()]
+            $this->lastErrorMessage = sprintf(
+                'To process export of "%s", the php extensions "zip" and "xml" are required.', // @translate
+                $this->getLabel()
             );
             return false;
         }

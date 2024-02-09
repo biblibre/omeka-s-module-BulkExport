@@ -21,10 +21,10 @@ class Odt extends AbstractFieldsFormatter
     public function format($resources, $output = null, array $options = []): self
     {
         if (!extension_loaded('zip') || !extension_loaded('xml')) {
-            $this->logger->err(
-                'To process export to "{format}", the php extensions "zip" and "xml" are required.', // @translate
-                ['format' => $this->getLabel()]
-            );
+            $this->logger->err(sprintf(
+                'To process export to "%s", the php extensions "zip" and "xml" are required.',
+                $this->getLabel()
+            ));
             $this->hasError = true;
             return $this;
         }

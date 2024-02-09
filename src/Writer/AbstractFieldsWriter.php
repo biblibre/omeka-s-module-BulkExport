@@ -148,10 +148,10 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         }
 
         $this->stats = [];
-        $this->logger->info(
-            '{number} different fields are used in all resources.', // @translate
-            ['number' => count($this->fieldNames)]
-        );
+        $this->logger->info(sprintf(
+            '%s different fields are used in all resources.',
+            count($this->fieldNames)
+        ));
 
         if ($this->hasHistoryLog
             && (in_array('operation', $this->fieldNames) || $this->includeDeleted)
@@ -246,10 +246,10 @@ abstract class AbstractFieldsWriter extends AbstractWriter
             }
         }
 
-        $this->logger->notice(
-            'All resources of all resource types ({total}) exported.', // @translate
-            ['total' => count($this->stats['process'])]
-        );
+        $this->logger->notice(sprintf(
+            'All resources of all resource types (%s) exported.',
+            count($this->stats['process'])
+        ));
         return $this;
     }
 
@@ -275,10 +275,11 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         $this->stats['process'][$resourceType]['skipped'] = 0;
         $statistics = &$this->stats['process'][$resourceType];
 
-        $this->logger->notice(
-            'Starting export of {total} {resource_type}.', // @translate
-            ['total' => $statistics['total'], 'resource_type' => $resourceText]
-        );
+        $this->logger->notice(sprintf(
+            'Starting export of %1$s %2$s.',
+            $statistics['total'],
+            $resourceText
+        ));
 
         // Avoid an issue when the query contains a page: there should not be
         // pagination at this point. Page and limit cannot be mixed.
@@ -290,10 +291,11 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         do {
             if ($this->job->shouldStop()) {
                 $this->jobIsStopped = true;
-                $this->logger->warn(
-                    'The job "Export" was stopped: {processed}/{total} resources processed.', // @translate
-                    ['processed' => $statistics['processed'], 'total' => $statistics['total']]
-                );
+                $this->logger->warn(sprintf(
+                    'The job "Export" was stopped: %1$s/%2$s resources processed.',
+                    $statistics['processed'],
+                    $statistics['total']
+                ));
                 break;
             }
 
@@ -337,10 +339,14 @@ abstract class AbstractFieldsWriter extends AbstractWriter
                 ++$statistics['processed'];
             }
 
-            $this->logger->info(
-                '{processed}/{total} {resource_type} processed, {succeed} succeed, {skipped} skipped.', // @translate
-                ['resource_type' => $resourceText, 'processed' => $statistics['processed'], 'total' => $statistics['total'], 'succeed' => $statistics['succeed'], 'skipped' => $statistics['skipped']]
-            );
+            $this->logger->info(sprintf(
+                '%1$s/%2$s %3$s processed, %4$s succeed, %5$s skipped.',
+                $statistics['processed'],
+                $statistics['total'],
+                $resourceText,
+                $statistics['succeed'],
+                $statistics['skipped']
+            ));
 
             // Avoid memory issue.
             unset($resources);
@@ -349,15 +355,19 @@ abstract class AbstractFieldsWriter extends AbstractWriter
             $offset += self::SQL_LIMIT;
         } while (true);
 
-        $this->logger->notice(
-            '{processed}/{total} {resource_type} processed, {succeed} succeed, {skipped} skipped.', // @translate
-            ['resource_type' => $resourceText, 'processed' => $statistics['processed'], 'total' => $statistics['total'], 'succeed' => $statistics['succeed'], 'skipped' => $statistics['skipped']]
-        );
+        $this->logger->notice(sprintf(
+            '%1$s/%2$s %3$s processed, %4$s succeed, %5$s skipped.',
+            $statistics['processed'],
+            $statistics['total'],
+            $resourceText,
+            $statistics['succeed'],
+            $statistics['skipped']
+        ));
 
-        $this->logger->notice(
-            'End export of {resource_type}.', // @translate
-            ['resource_type' => $resourceText]
-        );
+        $this->logger->notice(sprintf(
+            'End export of %s.', // @translate
+            $resourceText
+        ));
 
         return $this;
     }
@@ -381,10 +391,10 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         $this->stats['process'][$resourceType]['skipped'] ??= 0;
         $statistics = &$this->stats['process'][$resourceType];
 
-        $this->logger->notice(
-            'Starting export of deleted {resource_type}.', // @translate
-            ['resource_type' => $resourceText]
-        );
+        $this->logger->notice(sprintf(
+            'Starting export of deleted %s.', // @translate
+            $resourceText
+        ));
 
         $deleted = 0;
 
@@ -402,15 +412,15 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         }
 
         if ($deleted) {
-            $this->logger->notice(
-                'End export of {total} deleted {resource_type}.', // @translate
-                ['total' => $deleted, 'resource_type' => $resourceText]
-            );
+            $this->logger->notice(sprintf(
+                'End export of %1$s deleted %2$s.', // @translate
+                $deleted, $resourceText
+            ));
         } else {
-            $this->logger->notice(
-                'No deleted resource exported for {resource_type}.', // @translate
-                ['resource_type' => $resourceText]
-            );
+            $this->logger->notice(sprintf(
+                'No deleted resource exported for %s.', // @translate
+                $resourceText
+            ));
         }
 
         return $this;
@@ -633,10 +643,10 @@ abstract class AbstractFieldsWriter extends AbstractWriter
 
         $previousExport = reset($previousExports);
 
-        $this->logger->notice(
-            'Previous completed export by user {username} with exporter "{exporter_label}" is #{export_id} on {date}.', // @translate
-            ['username' => $user->name(), 'exporter_label' => $exporter->label(), 'export_id' => $previousExport->id(), 'date' => $previousExport->started()]
-        );
+        $this->logger->notice(sprintf(
+            'Previous completed export by user %1$s with exporter "%2$s" is #%3$s on %4$s.', // @translate
+            $user->name(), $exporter->label(), $previousExport->id(), $previousExport->started()
+        ));
 
         return $previousExport;
     }

@@ -231,10 +231,10 @@ class GeoJson extends AbstractFieldsJsonFormatter
     {
         $id = preg_replace('~.*/(?<id>\d+).*~m', '$1', $uri);
         if (!$id) {
-            $this->logger->err(
-                'The geonames uri "{url}" is invalid.', // @translate
-                ['url' => $uri]
-            );
+            $this->logger->err(sprintf(
+                'The geonames uri "%s" is invalid.',
+                $uri
+            ));
             return null;
         }
         return "https://sws.geonames.org/$id/about.rdf";
@@ -296,10 +296,10 @@ class GeoJson extends AbstractFieldsJsonFormatter
 
         // Warning: location "Earth" is 0/0.
         if ($result['latitude'] === null || $result['longitude'] === null) {
-            $this->logger->err(
-                'There is no coordinates for url "{url}" (name: {name}), used in resource #{resource_id}.', // @translate
-                ['url' => $result['uri'], 'name' => $result['name'], 'resource_id' => $this->currentResourceId]
-            );
+            $this->logger->err(sprintf(
+                'There is no coordinates for url "%1$s" (name: %2$s), used in resource #%3$s.', // @translate
+                $result['uri'], $result['name'], $this->currentResourceId
+            ));
             return null;
         }
 
@@ -371,18 +371,18 @@ class GeoJson extends AbstractFieldsJsonFormatter
         try {
             $doc->loadXML($xml);
         } catch (\Exception $e) {
-            $this->logger->err(
-                'Output is not xml for url "{url}" (resource #{resource_id}).', // @translate
-                ['url' => $url, 'resource_id' => $this->currentResourceId]
-            );
+            $this->logger->err(sprintf(
+                'Output is not xml for url "%s" (resource #%s).',
+                $url, $this->currentResourceId
+            ));
             return null;
         }
 
         if (!$doc) {
-            $this->logger->err(
-                'Output is not a valid xml for url "{url}" (resource #{resource_id}).', // @translate
-                ['url' => $url, 'resource_id' => $this->currentResourceId]
-            );
+            $this->logger->err(sprintf(
+                'Output is not a valid xml for url "%s" (resource #%s).',
+                $url, $this->currentResourceId
+            ));
             return null;
         }
 
@@ -410,10 +410,10 @@ class GeoJson extends AbstractFieldsJsonFormatter
             error_reporting($errorLevel);
             if (!in_array($url, $retries)) {
                 // Retrying after 1 minute.
-                $this->logger->warn(
-                    'Connection error when fetching url "{url}" (resource #{resource_id}): {exception}. Retrying in one minute.', // @translate
-                    ['url' => $url, 'resource_id' => $this->currentResourceId, 'exception' => $e]
-                );
+                $this->logger->warn(sprintf(
+                    'Connection error when fetching url "%1$s" (resource #%2$s): %3$s. Retrying in one minute.', // @translate
+                    $url, $this->currentResourceId, $e
+                ));
                 sleep(60);
                 $retries[] = $url;
                 return $this->fetchUrl($url);
@@ -421,42 +421,42 @@ class GeoJson extends AbstractFieldsJsonFormatter
             if (!in_array($url, $longRetries)) {
                 // Retrying after 10 minutes, resetting cookies.
                 $this->httpClient->reset();
-                $this->logger->warn(
-                    'Connection error when fetching url "{url}" (resource #{resource_id}): {exception}. Retrying in ten minutes.', // @translate
-                    ['url' => $url, 'resource_id' => $this->currentResourceId, 'exception' => $e]
-                );
+                $this->logger->warn(sprintf(
+                    'Connection error when fetching url "%1$s" (resource #%2$s): %3$s. Retrying in ten minutes.', // @translate
+                    $url, $this->currentResourceId, $e
+                ));
                 sleep(600);
                 $longRetries[] = $url;
                 return $this->fetchUrl($url);
             }
-            $this->logger->err(
-                'Connection error when fetching url "{url}" (resource #{resource_id}): {exception}', // @translate
-                ['url' => $url, 'resource_id' => $this->currentResourceId, 'exception' => $e]
-            );
+            $this->logger->err(sprintf(
+                'Connection error when fetching url "%1$s" (resource #%2$s): %3$s', // @translate
+                $url, $this->currentResourceId, $e
+            ));
             return null;
         } catch (\Exception $e) {
             error_reporting($errorLevel);
-            $this->logger->err(
-                'Connection error when fetching url "{url}" (resource #{resource_id}): {exception}', // @translate
-                ['url' => $url, 'resource_id' => $this->currentResourceId, 'exception' => $e]
-            );
+            $this->logger->err(sprintf(
+                'Connection error when fetching url "%1$s" (resource #%2$s): %3$s', // @translate
+                $url, $this->currentResourceId, $e
+            ));
             return null;
         }
 
         if (!$response->isSuccess()) {
-            $this->logger->err(
-                'Connection issue when fetching url "{url}" (resource #{resource_id}): {msg}', // @translate
-                ['url' => $url, 'resource_id' => $this->currentResourceId, 'msg' => $response->getReasonPhrase()]
-            );
+            $this->logger->err(sprintf(
+                'Connection issue when fetching url "%1$s" (resource #%2$s): %3$s', // @translate
+                $url, $this->currentResourceId, $response->getReasonPhrase()
+            ));
             return null;
         }
 
         $string = $response->getBody();
         if (!strlen($string)) {
-            $this->logger->warn(
-                'Output is empty for url "{url}" (resource #{resource_id}).', // @translate
-                ['url' => $url, 'resource_id' => $this->currentResourceId]
-            );
+            $this->logger->warn(sprintf(
+                'Output is empty for url "%s" (resource #%s).', // @translate
+                $url, $this->currentResourceId
+            ));
         }
 
         return $string;

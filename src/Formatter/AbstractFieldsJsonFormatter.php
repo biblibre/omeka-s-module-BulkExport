@@ -65,10 +65,10 @@ abstract class AbstractFieldsJsonFormatter extends AbstractFieldsFormatter
         $pos = ftell($this->handle);
         if ($pos === false) {
             $this->hasError = true;
-            $this->logger->err(
-                'Unable to check output: {error}.', // @translate
-                ['error' => error_get_last()['message']]
-            );
+            $this->logger->err(sprintf(
+                'Unable to check output: %s.',
+                error_get_last()['message']
+            ));
             return parent::finalizeOutput();
         }
 

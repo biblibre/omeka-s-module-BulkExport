@@ -101,10 +101,10 @@ trait OpenDocumentTextTemplateTrait
                 if (mb_strlen($fieldValue) < 1000) {
                     $section->addText($fieldValue, 'recordMetadata', 'pRecordMetadata');
                 } else {
-                    $this->logger->warn(
-                        'Skipped field "{fieldname}" of resource: it contains more than 1000 characters.', // @translate
-                        ['fieldname' => $fieldName]
-                    );
+                    $this->logger->warn(sprintf(
+                        'Skipped field "%s" of resource: it contains more than 1000 characters.',
+                        $fieldName
+                    ));
                 }
             }
         }

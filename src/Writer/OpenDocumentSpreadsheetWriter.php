@@ -3,7 +3,6 @@
 namespace BulkExport\Writer;
 
 use BulkExport\Form\Writer\SpreadsheetWriterConfigForm;
-use Common\Stdlib\PsrMessage;
 use OpenSpout\Common\Type;
 use OpenSpout\Writer\Common\Creator\WriterEntityFactory;
 
@@ -56,9 +55,9 @@ class OpenDocumentSpreadsheetWriter extends AbstractSpreadsheetWriter
     public function isValid(): bool
     {
         if (!extension_loaded('zip') || !extension_loaded('xml')) {
-            $this->lastErrorMessage = new PsrMessage(
-                'To process export of "{label}", the php extensions "zip" and "xml" are required.', // @translate
-                ['label' => $this->getLabel()]
+            $this->lastErrorMessage = sprintf(
+                'To process export of "%s", the php extensions "zip" and "xml" are required.',
+                $this->getLabel()
             );
             return false;
         }
@@ -67,9 +66,9 @@ class OpenDocumentSpreadsheetWriter extends AbstractSpreadsheetWriter
         $tempDir = $config['temp_dir'] ?: sys_get_temp_dir();
         $tempDir = $this->checkDestinationDir($tempDir);
         if (!$tempDir) {
-            $this->lastErrorMessage = new PsrMessage(
-                'The temporary folder "{folder}" does not exist or is not writeable.', // @translate
-                ['folder' => $tempDir]
+            $this->lastErrorMessage = sprintf(
+                'The temporary folder "%s" does not exist or is not writeable.',
+                $tempDir
             );
             return false;
         }

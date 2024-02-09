@@ -2,7 +2,7 @@
 
 namespace BulkExport;
 
-use Common\Stdlib\PsrMessage;
+use Omeka\Stdlib\Message;
 
 /**
  * @var Module $this
@@ -27,7 +27,7 @@ $entityManager = $services->get('Omeka\EntityManager');
 $localConfig = include dirname(__DIR__, 2) . '/config/module.config.php';
 
 if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Common', '3.4.61')) {
-    $message = new \Omeka\Stdlib\Message(
+    $message = new Message(
         $translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
         'Common', '3.4.61'
     );
@@ -147,21 +147,21 @@ SQL;
 }
 
 if (version_compare($oldVersion, '3.4.19', '<')) {
-    $message = new PsrMessage(
+    $message = new Message(
         'It is now possible to export resources as GeoJSON for values filled via Value Suggest Geonames.' // @translate
     );
     $messenger->addSuccess($message);
 }
 
 if (version_compare($oldVersion, '3.4.21', '<')) {
-    $message = new PsrMessage(
+    $message = new Message(
         'It is now possible to export into a specific directory with a specific filename.' // @translate
     );
     $messenger->addSuccess($message);
 }
 
 if (version_compare($oldVersion, '3.4.23', '<')) {
-    $message = new PsrMessage(
+    $message = new Message(
         'It is now possible to export via the api endpoint: just add an extension to it, like for admin or site view, for example "/api/items.ods" or "/api-local/items/151.odt" (from module Api Info).' // @translate
     );
     $messenger->addSuccess($message);
@@ -219,12 +219,12 @@ SQL;
         $connection->executeStatement($sql);
     }
 
-    $message = new PsrMessage(
+    $message = new Message(
         'It is now possible to store an exporter as a task.' // @translate
     );
     $messenger->addSuccess($message);
 
-    $message = new PsrMessage(
+    $message = new Message(
         'It is now possible to do an incremental export.' // @translate
     );
     $messenger->addSuccess($message);
@@ -341,7 +341,7 @@ SQL;
     ];
     $connection->executeStatement(str_replace(array_keys($replace), array_values($replace), $sql));
 
-    $message = new PsrMessage(
+    $message = new Message(
         'The config of exporters has been upgraded to a new format. You may check them if you use a complex config.' // @translate
     );
     $messenger->addSuccess($message);
@@ -382,12 +382,12 @@ if (version_compare($oldVersion, '3.4.32', '<')) {
         $siteSettings->set('bulkexport_views', $bulkExportViews);
     }
 
-    $message = new PsrMessage(
+    $message = new Message(
         'New resource page blocks have been added to display a button to export current resources.' // @translate
     );
     $messenger->addSuccess($message);
 
-    $message = new PsrMessage(
+    $message = new Message(
         'A new option has been added to display the exporters automatically in selected pages for themes that don’t manage resource page blocks. Check your site if needed.' // @translate
     );
     $messenger->addWarning($message);

@@ -5,7 +5,7 @@ namespace BulkExport\Controller\Admin;
 use Laminas\Log\Logger;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\View\Model\ViewModel;
-use Common\Stdlib\PsrMessage;
+use Omeka\Stdlib\Message;
 
 class ExportController extends AbstractActionController
 {
@@ -101,53 +101,24 @@ class ExportController extends AbstractActionController
         /** @var \BulkExport\Api\Representation\ExportRepresentation $export */
         $export = $this->api()->searchOne('bulk_exports', ['id' => $id])->getContent();
         if (!$export) {
-            $this->messenger()->addWarning(new PsrMessage(
-                'The export process #{export} does not exists.', // @translate
-                ['export' => $id]
+            $this->messenger()->addWarning(new Message(
+                'The export process #%s does not exists.', // @translate
+                $id
             ));
         } elseif ($export->isStoppable()) {
             $job = $export->job();
             $this->jobDispatcher()->stop($job->id());
-            $this->messenger()->addSuccess(new PsrMessage(
-                'Attempting to stop the export process #{export}.', // @translate
-                ['export' => $id]
+            $this->messenger()->addSuccess(new Message(
+                'Attempting to stop the export process #%s.', // @translate
+                $id
             ));
         } else {
-            $this->messenger()->addWarning(new PsrMessage(
-                'The process #{export} cannot be stopped.', // @translate
-                ['export' => $id]
+            $this->messenger()->addWarning(new Message(
+                'The process #%s cannot be stopped.', // @translate
+                $id
             ));
         }
 
         return $this->redirect()->toRoute(null, ['action' => 'logs'], true);
-    }
-
-    public function logsAction()
-    {
-        $id = $this->params()->fromRoute('id');
-        $export = $this->api()->read('bulk_exports', $id)->getContent();
-
-        $this->setBrowseDefaults('created');
-
-        $severity = $this->params()->fromQuery('severity', Logger::NOTICE);
-        $severity = (int) preg_replace('/[^0-9]+/', '', (string) $severity);
-        $page = $this->params()->fromQuery('page', 1);
-        $query = $this->params()->fromQuery();
-        $query['reference'] = 'bulk/export/' . $id;
-        $query['severity'] = '<=' . $severity;
-
-        $response = $this->api()->read('bulk_exports', $id);
-        $this->paginator($response->getTotalResults(), $page);
-
-        $response = $this->api()->search('logs', $query);
-        $this->paginator($response->getTotalResults(), $page);
-
-        $logs = $response->getContent();
-
-        return new ViewModel([
-            'export' => $export,
-            'logs' => $logs,
-            'severity' => $severity,
-        ]);
     }
 }

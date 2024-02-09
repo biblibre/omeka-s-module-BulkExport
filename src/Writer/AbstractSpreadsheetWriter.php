@@ -61,10 +61,10 @@ abstract class AbstractSpreadsheetWriter extends AbstractFieldsWriter
                 $this->spreadsheetWriter = WriterEntityFactory::createODSWriter();
                 break;
             default:
-                $this->logger->err(
-                    'Unsupported format {format} for spreadsheet.', // @translate
-                    ['format' => $this->spreadsheet]
-                );
+                $this->logger->err(sprintf(
+                    'Unsupported format %s for spreadsheet.',
+                    $this->spreadsheet
+                ));
                 $this->hasError = true;
                 return $this;
         }
@@ -107,10 +107,12 @@ abstract class AbstractSpreadsheetWriter extends AbstractFieldsWriter
                 return strpos((string) $v, $separator) !== false;
             });
             if ($check) {
-                $this->logger->warn(
-                    'Skipped {resource_type} #{resource_id}: it contains the separator "{separator}".', // @translate
-                    ['resource_type' => $this->mapRepresentationToResourceTypeText($resource), 'resource_id' => $resource->id(), 'separator' => $separator]
-                );
+                $this->logger->warn(sprintf(
+                    'Skipped %1$s #%2$s: it contains the separator "%3$s".',
+                    $this->mapRepresentationToResourceTypeText($resource),
+                    $resource->id(),
+                    $separator
+                ));
                 $dataResource = [];
                 break;
             }

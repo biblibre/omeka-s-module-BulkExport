@@ -13,16 +13,13 @@ use Laminas\EventManager\Event;
 use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ModuleManager\ModuleManager;
 use Laminas\Mvc\MvcEvent;
-use Log\Stdlib\PsrMessage;
 use Omeka\Module\Exception\ModuleCannotInstallException;
 
 class Module extends AbstractModule
 {
     const NAMESPACE = __NAMESPACE__;
 
-    protected $dependencies = [
-        'Log',
-    ];
+    protected $dependencies = [];
 
     public function init(ModuleManager $moduleManager): void
     {
@@ -70,7 +67,7 @@ class Module extends AbstractModule
             ->allow(
                 $backendRoles,
                 ['BulkExport\Controller\Admin\Export'],
-                ['browse', 'index', 'show', 'logs', 'delete-confirm', 'delete']
+                ['browse', 'index', 'show', 'delete-confirm', 'delete']
             )
             ->allow(
                 $backendRoles,
@@ -128,11 +125,11 @@ class Module extends AbstractModule
         $translator = $services->get('MvcTranslator');
 
         if (!$this->checkDestinationDir($basePath . '/bulk_export')) {
-            $message = new PsrMessage(
-                'The directory "{path}" is not writeable.', // @translate
-                ['path' => $basePath . '/bulk_export']
+            $message = sprintf(
+                $translator->translate('The directory "%s" is not writeable.'),
+                $basePath . '/bulk_export'
             );
-            throw new ModuleCannotInstallException((string) $message->setTranslator($translator));
+            throw new ModuleCannotInstallException($message);
         }
 
         $modules = [
@@ -156,11 +153,12 @@ class Module extends AbstractModule
                 } elseif (!$version || version_compare($module->getIni('version') ?? '', $version, '>=')) {
                     continue;
                 }
-                $message = new PsrMessage(
-                    'This module requires the module "{module}", version {version} or above.', // @translate
-                    ['module' => $moduleName, 'version' => $version]
+                $message = sprintf(
+                    $translator->translate('This module requires the module "%1$s", version %2$s or above.'),
+                    $moduleName,
+                    $version
                 );
-                throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message->setTranslator($translator));
+                throw new \Omeka\Module\Exception\ModuleCannotInstallException($message);
             }
         }
     }
@@ -226,7 +224,7 @@ class Module extends AbstractModule
 
         $html .= '<p>';
         $html .= sprintf(
-            $t->translate('All bulk exports will be removed (folder "{folder}").'), // @translate
+            $t->translate('All bulk exports will be removed (folder "%s").'), // @translate
             $basePath . '/bulk_export'
         );
         $html .= '</p>';
@@ -440,10 +438,10 @@ class Module extends AbstractModule
     {
         if (file_exists($dirPath)) {
             if (!is_dir($dirPath) || !is_readable($dirPath) || !is_writeable($dirPath)) {
-                $this->getServiceLocator()->get('Omeka\Logger')->err(
-                    'The directory "{path}" is not writeable.', // @translate
-                    ['path' => $dirPath]
-                );
+                $this->getServiceLocator()->get('Omeka\Logger')->err(sprintf(
+                    'The directory "%s" is not writeable.',
+                    $dirPath
+                ));
                 return null;
             }
             return $dirPath;
@@ -451,10 +449,11 @@ class Module extends AbstractModule
 
         $result = @mkdir($dirPath, 0775, true);
         if (!$result) {
-            $this->getServiceLocator()->get('Omeka\Logger')->err(
-                'The directory "{path}" is not writeable: {error}.', // @translate
-                ['path' => $dirPath, 'error' => error_get_last()['message']]
-            );
+            $this->getServiceLocator()->get('Omeka\Logger')->err(sprintf(
+                'The directory "%1$s" is not writeable: %2$s.',
+                $dirPath,
+                error_get_last()['message']
+            ));
             return null;
         }
         return $dirPath;

@@ -42,5 +42,5 @@ $this->headLink()->appendStylesheet($this->assetUrl('css/bulk-export-admin.css',
         ?></pre>
     </div>
     <h4><?= $escape($translate('Logs')) ?></h4>
-    <?= $this->hyperlink($translate('See logs'), $this->url('admin/bulk-export/id', ['controller' => 'export', 'action' => 'logs', 'id' => $export->id()])) ?>
+    <?= $this->hyperlink($translate('See logs'), $this->url('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $export->job()->id()])) ?>
 </div>

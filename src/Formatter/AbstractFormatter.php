@@ -4,7 +4,6 @@ namespace BulkExport\Formatter;
 
 use Laminas\Http\PhpEnvironment\Response as HttpResponse;
 use Laminas\ServiceManager\ServiceLocatorInterface;
-use Log\Stdlib\PsrMessage;
 
 abstract class AbstractFormatter implements FormatterInterface
 {
@@ -178,9 +177,9 @@ abstract class AbstractFormatter implements FormatterInterface
         $content = $this->getContent();
         if ($content === false) {
             // Detailled results are logged.
-            throw new \Omeka\Mvc\Exception\RuntimeException((string) new PsrMessage(
-                'Unable to format resources as {format}.', // @translate
-                ['format' => $this->getLabel()]
+            throw new \Omeka\Mvc\Exception\RuntimeException(sprintf(
+                'Unable to format resources as %s.', // @translate
+                $this->getLabel()
             ));
         }
 
@@ -370,10 +369,10 @@ abstract class AbstractFormatter implements FormatterInterface
         $this->handle = fopen($file, 'w+');
         if (!$this->handle) {
             $this->hasError = true;
-            $this->logger->err(
-                'Unable to open output: {error}.', // @translate
-                ['error' => error_get_last()['message']]
-            );
+            $this->logger->err(sprintf(
+                'Unable to open output: %s.',
+                error_get_last()['message']
+            ));
         }
         return $this;
     }
@@ -407,10 +406,10 @@ abstract class AbstractFormatter implements FormatterInterface
         $this->size = file_put_contents($this->output, $this->content);
         if ($this->size === false) {
             $this->hasError = true;
-            $this->logger->err(
-                'Unable to save output to file: {error}.', // @translate
-                ['error' => error_get_last()['message']]
-            );
+            $this->logger->err(sprintf(
+                'Unable to save output to file: %s.',
+                error_get_last()['message']
+            ));
         }
         $this->content = null;
         return $this;

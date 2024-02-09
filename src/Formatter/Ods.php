@@ -17,20 +17,20 @@ class Ods extends AbstractSpreadsheetFormatter
     public function format($resources, $output = null, array $options = []): FormatterInterface
     {
         if (!extension_loaded('zip') || !extension_loaded('xml')) {
-            $this->logger->err(
-                'To process export to "{format}", the php extensions "zip" and "xml" are required.', // @translate
-                ['format' => $this->getLabel()]
-            );
+            $this->logger->err(sprintf(
+                'To process export to "%s", the php extensions "zip" and "xml" are required.',
+                $this->getLabel()
+            ));
             $this->hasError = true;
             return $this;
         }
 
         $tempDir = $this->services->get('Config')['temp_dir'] ?: sys_get_temp_dir();
         if (!$this->createDir($tempDir)) {
-            $this->logger->err(
-                'The temporary folder "{folder}" does not exist or is not writeable.', // @translate
-                ['folder' => $tempDir]
-            );
+            $this->logger->err(sprintf(
+                'The temporary folder "%s" does not exist or is not writeable.',
+                $tempDir
+            ));
             $this->hasError = true;
             return $this;
         }
@@ -55,10 +55,10 @@ class Ods extends AbstractSpreadsheetFormatter
                 ->openToFile($this->filepath);
         } catch (\OpenSpout\Common\Exception\IOException $e) {
             $this->hasError = true;
-            $this->logger->err(
-                'Unable to open output: {error}.', // @translate
-                ['error' => error_get_last()['message']]
-            );
+            $this->logger->err(sprintf(
+                'Unable to open output: %s.',
+                error_get_last()['message']
+            ));
         }
         return $this;
     }

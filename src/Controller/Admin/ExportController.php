@@ -97,34 +97,4 @@ class ExportController extends AbstractActionController
             true
         );
     }
-
-    public function logsAction()
-    {
-        $id = $this->params()->fromRoute('id');
-        $export = $this->api()->read('bulk_exports', $id)->getContent();
-
-        $this->setBrowseDefaults('created');
-
-        $severity = $this->params()->fromQuery('severity', Logger::NOTICE);
-        $severity = (int) preg_replace('/[^0-9]+/', '', (string) $severity);
-        $page = $this->params()->fromQuery('page', 1);
-        $query = $this->params()->fromQuery();
-        $query['reference'] = 'bulk/export/' . $id;
-        $query['severity'] = '<=' . $severity;
-
-        $response = $this->api()->read('bulk_exports', $id);
-        $this->paginator($response->getTotalResults(), $page);
-
-        $response = $this->api()->search('logs', $query);
-        $this->paginator($response->getTotalResults(), $page);
-
-        $logs = $response->getContent();
-
-        return new ViewModel([
-            'export' => $export,
-            'resource' => $export,
-            'logs' => $logs,
-            'severity' => $severity,
-        ]);
-    }
 }

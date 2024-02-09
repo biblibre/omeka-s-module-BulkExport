@@ -341,13 +341,6 @@ return [
                 'action' => 'show',
                 'useRouteMatch' => true,
             ],
-            [
-                'label' => 'Logs', // @translate
-                'route' => 'admin/bulk-export/id',
-                'controller' => 'export',
-                'action' => 'logs',
-                'useRouteMatch' => true,
-            ],
         ],
     ],
     // Writers are designed for job processing and formatters for instant process.

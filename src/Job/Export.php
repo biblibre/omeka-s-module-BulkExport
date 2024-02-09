@@ -8,7 +8,6 @@ use BulkExport\Interfaces\Parametrizable;
 use BulkExport\Writer\Manager as WriterManager;
 use BulkExport\Writer\WriterInterface;
 use Laminas\Log\Logger;
-use Log\Stdlib\PsrMessage;
 use Omeka\Job\AbstractJob;
 
 class Export extends AbstractJob
@@ -38,9 +37,9 @@ class Export extends AbstractJob
         $writer = $this->getWriter();
 
         if (!$writer->isValid()) {
-            throw new \Omeka\Job\Exception\RuntimeException((string) new PsrMessage(
-                'Export error: {error}', // @translate
-                ['error' => $writer->getLastErrorMessage()]
+            throw new \Omeka\Job\Exception\RuntimeException(sprintf(
+                'Export error: %s', // @translate
+                $writer->getLastErrorMessage()
             ));
         }
 
@@ -99,10 +98,11 @@ class Export extends AbstractJob
         $config = $services->get('Config');
         $baseFiles = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
         $baseUrl = $config['file_store']['local']['base_uri'] ?: $services->get('Router')->getBaseUrl() . '/files';
-        $this->logger->notice(
-            'The export is available at {url} (size: {size} bytes).', // @translate
-            ['url' => $baseUrl . '/bulk_export/' . $params['filename'], 'size' => filesize($baseFiles . '/bulk_export/' .$params['filename'])]
-        );
+        $this->logger->notice(sprintf(
+            'The export is available at %1$s (size: %2$s bytes).',
+            $baseUrl . '/bulk_export/' . $params['filename'],
+            filesize($baseFiles . '/bulk_export/' .$params['filename'])
+        ));
     }
 
     /**
@@ -112,13 +112,10 @@ class Export extends AbstractJob
      */
     protected function getLogger()
     {
-        if ($this->logger) {
-            return $this->logger;
+        if (!isset($this->logger)) {
+            $this->logger = $this->getServiceLocator()->get('Omeka\Logger');
         }
-        $this->logger = $this->getServiceLocator()->get('Omeka\Logger');
-        $referenceId = new \Laminas\Log\Processor\ReferenceId();
-        $referenceId->setReferenceId('bulk/export/' . $this->getExport()->id());
-        $this->logger->addProcessor($referenceId);
+
         return $this->logger;
     }
 
@@ -168,9 +165,9 @@ class Export extends AbstractJob
         $writerClass = $exporter->writerClass();
         $writerManager = $services->get(WriterManager::class);
         if (!$writerManager->has($writerClass)) {
-            throw new \Omeka\Job\Exception\InvalidArgumentException((string) new PsrMessage(
-                'Writer "{writer}" is not available.', // @translate
-                ['writer' => $writerClass]
+            throw new \Omeka\Job\Exception\InvalidArgumentException(sprintf(
+                'Writer "%s" is not available.', // @translate
+                $writerClass
             ));
         }
         $writer = $writerManager->get($writerClass);

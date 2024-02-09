@@ -14,7 +14,7 @@ use Laminas\Form\Fieldset;
 use Laminas\Mvc\Controller\AbstractActionController;
 use Laminas\Session\Container;
 use Laminas\View\Model\ViewModel;
-use Log\Stdlib\PsrMessage;
+use Omeka\Stdlib\Message;
 
 class ExporterController extends AbstractActionController
 {
@@ -30,7 +30,7 @@ class ExporterController extends AbstractActionController
         $entity = ($id) ? $this->api()->searchOne('bulk_exporters', ['id' => $id])->getContent() : null;
 
         if ($id && !$entity) {
-            $message = new PsrMessage('Exporter #{exporter_id} does not exist', ['exporter_id' => $id]); // @translate
+            $message = new Message('Exporter #%s does not exist', $id); // @translate
             $this->messenger()->addError($message);
             return $this->redirect()->toRoute('admin/bulk-export/default', ['controller' => 'bulk-export']);
         }
@@ -78,7 +78,7 @@ class ExporterController extends AbstractActionController
         $entity = ($id) ? $this->api()->searchOne('bulk_exporters', ['id' => $id])->getContent() : null;
 
         if (!$entity) {
-            $message = new PsrMessage('Exporter #{exporter_id} does not exist', ['exporter_id' => $id]); // @translate
+            $message = new Message('Exporter #%s does not exist', $id); // @translate
             $this->messenger()->addError($message);
             return $this->redirect()->toRoute('admin/bulk-export/default', ['controller' => 'bulk-export']);
         }
@@ -123,7 +123,7 @@ class ExporterController extends AbstractActionController
         $entity = ($id) ? $this->api()->searchOne('bulk_exporters', ['id' => $id])->getContent() : null;
 
         if (!$entity) {
-            $message = new PsrMessage('Exporter #{exporter_id} does not exist', ['exporter_id' => $id]); // @translate
+            $message = new Message('Exporter #%s does not exist', $id); // @translate
             $this->messenger()->addError($message);
             return $this->redirect()->toRoute('admin/bulk-export/default', ['controller' => 'bulk-export']);
         }
@@ -183,7 +183,7 @@ class ExporterController extends AbstractActionController
         /** @var \BulkExport\Api\Representation\ExporterRepresentation $exporter */
         $exporter = ($id) ? $this->api()->searchOne('bulk_exporters', ['id' => $id])->getContent() : null;
         if (!$exporter) {
-            $message = new PsrMessage('Exporter #{exporter_id} does not exist', ['exporter_id' => $id]); // @translate
+            $message = new Message('Exporter #%s does not exist', $id); // @translate
             $this->messenger()->addError($message);
             return $this->redirect()->toRoute('admin/bulk-export/default', ['controller' => 'bulk-export']);
         }
@@ -276,24 +276,25 @@ class ExporterController extends AbstractActionController
                             $job = $useBackground
                                 ? $dispatcher->dispatch(JobExport::class, $args)
                                 : $dispatcher->dispatch(JobExport::class, $args, $export->getServiceLocator()->get(\Omeka\Job\DispatchStrategy\Synchronous::class));
+
+                            $this->api()->update('bulk_exports', $export->id(), ['o:job' => $job], [], ['isPartial' => true]);
+
                             $urlHelper = $this->url();
                             $message = $useBackground
-                                ? 'Export started in background (job {link_open_job}#{jobId}{link_close}, {link_open_log}logs{link_close}). This may take a while.' // @translate
-                                : 'Export processed in (job {link_open_job}#{jobId}{link_close}, {link_open_log}logs{link_close}).'; // @translate
-                            $message = new PsrMessage(
+                                ? 'Export started in background (job %1$s#%2$s%3$s, %4$slogs%3$s). This may take a while.' // @translate
+                                : 'Export processed in (job %1$s#%2$s%3$s, %4$slogs%5$s).'; // @translate
+                            $message = new Message(
                                 $message,
-                                [
-                                    'link_open_job' => sprintf(
-                                        '<a href="%s">',
-                                        htmlspecialchars($urlHelper->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))
-                                    ),
-                                    'jobId' => $job->getId(),
-                                    'link_close' => '</a>',
-                                    'link_open_log' => sprintf(
-                                        '<a href="%s">',
-                                        htmlspecialchars($urlHelper->fromRoute('admin/bulk-export/id', ['controller' => 'export', 'action' => 'logs', 'id' => $export->id()]))
-                                    ),
-                                ]
+                                sprintf(
+                                    '<a href="%s">',
+                                    htmlspecialchars($urlHelper->fromRoute('admin/id', ['controller' => 'job', 'id' => $job->getId()]))
+                                ),
+                                $job->getId(),
+                                '</a>',
+                                sprintf(
+                                    '<a href="%s">',
+                                    htmlspecialchars($urlHelper->fromRoute('admin/id', ['controller' => 'job', 'action' => 'log', 'id' => $job->getId()]))
+                                ),
                             );
                             $message->setEscapeHtml(false);
                             $this->messenger()->addSuccess($message);

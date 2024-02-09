@@ -3,7 +3,6 @@
 namespace BulkExport\Controller;
 
 use Laminas\Mvc\Controller\AbstractActionController;
-use Log\Stdlib\PsrMessage;
 
 class OutputController extends AbstractActionController
 {
@@ -26,10 +25,12 @@ class OutputController extends AbstractActionController
 
         $format = $params->fromRoute('format');
         if (!$exportFormatter->has($format)) {
-            throw new \Omeka\Mvc\Exception\NotFoundException((string) new PsrMessage(
-                $this->translate('Unsupported format "{format}".'), // @translate
-                ['format' => $format]
-            ));
+            throw new \Omeka\Mvc\Exception\NotFoundException(
+                sprintf(
+                    $this->translate('Unsupported format "%s".'), // @translate
+                    $format
+                )
+            );
         }
 
         $isSiteRequest = $this->status()->isSiteRequest();

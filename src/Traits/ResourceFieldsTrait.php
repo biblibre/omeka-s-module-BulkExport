@@ -114,10 +114,10 @@ trait ResourceFieldsTrait
 
         $missingProperties = array_diff($unlimitedUsedProperties, $usedProperties);
         if (count($missingProperties)) {
-            $this->logger->warn(
-                'Some properties are not exported because they contain more or less than 5000 characters: {properties}.', // @translate
-                ['properties' => $missingProperties]
-            );
+            $this->logger->warn(sprintf(
+                'Some properties are not exported because they contain more or less than 5000 characters: %s.',
+                $missingProperties
+            ));
         }
 
         $this->fieldNames = array_values($this->fieldNames);

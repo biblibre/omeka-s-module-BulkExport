@@ -111,18 +111,6 @@ class ExportRepresentation extends AbstractEntityRepresentation
         return $job && $job->status() === \Omeka\Entity\Job::STATUS_COMPLETED;
     }
 
-    public function logCount(): int
-    {
-        $job = $this->job();
-        if (!$job) {
-            return 0;
-        }
-
-        $response = $this->getServiceLocator()->get('Omeka\ApiManager')
-            ->search('logs', ['job_id' => $job->id(), 'limit' => 0]);
-        return $response->getTotalResults();
-    }
-
     public function adminUrl($action = null, $canonical = false)
     {
         $url = $this->getViewHelper('Url');

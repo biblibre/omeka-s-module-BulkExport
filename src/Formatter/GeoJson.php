@@ -162,10 +162,10 @@ class GeoJson extends AbstractFieldsJsonFormatter
     {
         $id = preg_replace('~.*/(?<id>[0-9]+).*~m', '$1', $uri);
         if (!$id) {
-            $this->logger->err(
-                'The geonames uri "{url}" is invalid.', // @translate
-                ['url' => $uri]
-            );
+            $this->logger->err(sprintf(
+                'The geonames uri "%s" is invalid.',
+                $uri
+            ));
             return null;
         }
         return "https://sws.geonames.org/$id/about.rdf";
@@ -288,18 +288,18 @@ class GeoJson extends AbstractFieldsJsonFormatter
         try {
             $doc->loadXML($xml);
         } catch (\Exception $e) {
-            $this->logger->err(
-                'Output is not xml for url "{url}".', // @translate
-                ['url' => $url]
-            );
+            $this->logger->err(sprintf(
+                'Output is not xml for url "%s".',
+                $url
+            ));
             return null;
         }
 
         if (!$doc) {
-            $this->logger->err(
-                'Output is not a valid xml for url "{url}".', // @translate
-                ['url' => $url]
-            );
+            $this->logger->err(sprintf(
+                'Output is not a valid xml for url "%s".',
+                $url
+            ));
             return null;
         }
 
@@ -322,27 +322,27 @@ class GeoJson extends AbstractFieldsJsonFormatter
             error_reporting($errorLevel);
         } catch (\Laminas\Http\Client\Exception\ExceptionInterface $e) {
             error_reporting($errorLevel);
-            $this->logger->err(
-                'Connection error when fetching url "{url}": {exception}', // @translate
-                ['url' => $url, 'exception' => $e]
-            );
+            $this->logger->err(sprintf(
+                'Connection error when fetching url "%1$s": %2$s',
+                $url, $e
+            ));
             return null;
         }
 
         if (!$response->isSuccess()) {
-            $this->logger->err(
-                'Connection issue when fetching url "{url}": {msg}', // @translate
-                ['url' => $url, 'msg' => $response->getReasonPhrase()]
-            );
+            $this->logger->err(sprintf(
+                'Connection issue when fetching url "%1$s": %2$s',
+                $url, $response->getReasonPhrase()
+            ));
             return null;
         }
 
         $string = $response->getBody();
         if (!strlen($string)) {
-            $this->logger->warn(
-                'Output is empty for url "{url}".', // @translate
-                ['url' => $url]
-            );
+            $this->logger->warn(sprintf(
+                'Output is empty for url "%s".',
+                $url,
+            ));
         }
 
         return $string;

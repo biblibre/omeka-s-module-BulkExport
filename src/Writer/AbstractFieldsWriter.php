@@ -5,7 +5,6 @@ namespace BulkExport\Writer;
 use BulkExport\Traits\ListTermsTrait;
 use BulkExport\Traits\MetadataToStringTrait;
 use BulkExport\Traits\ResourceFieldsTrait;
-use Log\Stdlib\PsrMessage;
 use Omeka\Api\Representation\AbstractResourceEntityRepresentation;
 
 abstract class AbstractFieldsWriter extends AbstractWriter
@@ -102,9 +101,9 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
         $destinationDir = $basePath . DIRECTORY_SEPARATOR . 'bulk_export';
         if (!$this->checkDestinationDir($destinationDir)) {
-            $this->lastErrorMessage = new PsrMessage(
-                'Output directory "{folder}" is not writeable.', // @translate
-                ['folder' => $destinationDir]
+            $this->lastErrorMessage = sprintf(
+                'Output directory "%s" is not writeable.', // @translate
+                $destinationDir,
             );
             return false;
         }
@@ -145,10 +144,10 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         }
 
         $this->stats = [];
-        $this->logger->info(
-            '{number} different fields are used in all resources.', // @translate
-            ['number' => count($this->fieldNames)]
-        );
+        $this->logger->info(sprintf(
+            '%s different fields are used in all resources.',
+            count($this->fieldNames)
+        ));
 
         $this->appendResources();
 
@@ -218,10 +217,10 @@ abstract class AbstractFieldsWriter extends AbstractWriter
             $this->appendResourcesForResourceType($resourceType);
         }
 
-        $this->logger->notice(
-            'All resources of all resource types ({total}) exported.', // @translate
-            ['total' => count($this->stats['process'])]
-        );
+        $this->logger->notice(sprintf(
+            'All resources of all resource types (%s) exported.',
+            count($this->stats['process'])
+        ));
         return $this;
     }
 
@@ -249,10 +248,11 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         $this->stats['process'][$resourceType]['skipped'] = 0;
         $statistics = &$this->stats['process'][$resourceType];
 
-        $this->logger->notice(
-            'Starting export of {total} {resource_type}.', // @translate
-            ['total' => $statistics['total'], 'resource_type' => $resourceText]
-        );
+        $this->logger->notice(sprintf(
+            'Starting export of %1$s %2$s.',
+            $statistics['total'],
+            $resourceText
+        ));
 
         // Avoid an issue when the query contains a page: there should not be
         // pagination at this point. Page and limit cannot be mixed.
@@ -264,10 +264,11 @@ abstract class AbstractFieldsWriter extends AbstractWriter
         do {
             if ($this->job->shouldStop()) {
                 $this->jobIsStopped = true;
-                $this->logger->warn(
-                    'The job "Export" was stopped: {processed}/{total} resources processed.', // @translate
-                    ['processed' => $statistics['processed'], 'total' => $statistics['total']]
-                );
+                $this->logger->warn(sprintf(
+                    'The job "Export" was stopped: %1$s/%2$s resources processed.',
+                    $statistics['processed'],
+                    $statistics['total']
+                ));
                 break;
             }
 
@@ -308,10 +309,14 @@ abstract class AbstractFieldsWriter extends AbstractWriter
                 ++$statistics['processed'];
             }
 
-            $this->logger->info(
-                '{processed}/{total} {resource_type} processed, {succeed} succeed, {skipped} skipped.', // @translate
-                ['resource_type' => $resourceText, 'processed' => $statistics['processed'], 'total' => $statistics['total'], 'succeed' => $statistics['succeed'], 'skipped' => $statistics['skipped']]
-            );
+            $this->logger->info(sprintf(
+                '%1$s/%2$s %3$s processed, %4$s succeed, %5$s skipped.',
+                $statistics['processed'],
+                $statistics['total'],
+                $resourceText,
+                $statistics['succeed'],
+                $statistics['skipped']
+            ));
 
             // Avoid memory issue.
             unset($resources);
@@ -320,15 +325,20 @@ abstract class AbstractFieldsWriter extends AbstractWriter
             $offset += self::SQL_LIMIT;
         } while (true);
 
-        $this->logger->notice(
-            '{processed}/{total} {resource_type} processed, {succeed} succeed, {skipped} skipped.', // @translate
-            ['resource_type' => $resourceText, 'processed' => $statistics['processed'], 'total' => $statistics['total'], 'succeed' => $statistics['succeed'], 'skipped' => $statistics['skipped']]
-        );
+        $this->logger->notice(sprintf(
+            '%1$s/%2$s %3$s processed, %4$s succeed, %5$s skipped.',
+            $statistics['processed'],
+            $statistics['total'],
+            $resourceText,
+            $statistics['succeed'],
+            $statistics['skipped']
+        ));
 
-        $this->logger->notice(
-            'End export of {total} {resource_type}.', // @translate
-            ['total' => $statistics['total'], 'resource_type' => $resourceText]
-        );
+        $this->logger->notice(sprintf(
+            'End export of %1$s %2$s.',
+            $statistics['total'],
+            $resourceText
+        ));
 
         return $this;
     }

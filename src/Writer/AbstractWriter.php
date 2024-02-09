@@ -10,7 +10,6 @@ use BulkExport\Traits\ServiceLocatorAwareTrait;
 use Laminas\Form\Form;
 use Laminas\Log\Logger;
 use Laminas\ServiceManager\ServiceLocatorInterface;
-use Log\Stdlib\PsrMessage;
 use Omeka\Api\Representation\AbstractRepresentation;
 use Omeka\Job\AbstractJob as Job;
 
@@ -164,18 +163,18 @@ abstract class AbstractWriter implements WriterInterface, Configurable, Parametr
             $config = $this->getServiceLocator()->get('Config');
             $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
             if (!is_writeable($basePath)) {
-                $this->logger->err(
-                    'The destination folder "{folder}" is not writeable.', // @translate
-                    ['folder' => $basePath]
-                );
+                $this->logger->err(sprintf(
+                    'The destination folder "%s" is not writeable.',
+                    $basePath
+                ));
                 return null;
             }
             @mkdir($dirPath, 0755, true);
         } elseif (!is_dir($dirPath) || !is_writeable($dirPath)) {
-            $this->logger->err(
-                'The destination folder "{folder}" is not writeable.', // @translate
-                ['folder' => $basePath . '/' . $dirPath]
-            );
+            $this->logger->err(sprintf(
+                'The destination folder "%s" is not writeable.',
+                $basePath . '/' . $dirPath
+            ));
             return null;
         }
         return $dirPath;
@@ -244,16 +243,19 @@ abstract class AbstractWriter implements WriterInterface, Configurable, Parametr
             $result = copy($this->filepath, $outputFilepath);
             @unlink($this->filepath);
         } catch (\Exception $e) {
-            throw new \Omeka\Job\Exception\RuntimeException((string) new PsrMessage(
-                'Export error when saving "{filename}" (temp file: "{tempfile}"): {exception}', // @translate
-                ['filename' => $filename, 'tempfile' => $this->filepath, 'exception' => $e]
+            throw new \Omeka\Job\Exception\RuntimeException(sprintf(
+                'Export error when saving "%1$s" (temp file: "%2$s"): %3$s',
+                $filename,
+                $this->filepath,
+                $e
             ));
         }
 
         if (!$result) {
-            throw new \Omeka\Job\Exception\RuntimeException((string) new PsrMessage(
-                'Export error when saving "{filename}" (temp file: "{tempfile}").', // @translate
-                ['filename' => $filename, 'tempfile' => $this->filepath]
+            throw new \Omeka\Job\Exception\RuntimeException(sprintf(
+                'Export error when saving "%1$s" (temp file: "%2$s")',
+                $filename,
+                $this->filepath,
             ));
         }
 

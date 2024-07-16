@@ -23,7 +23,7 @@ modules that provides output: [Bibliography].
 Installation
 ------------
 
-This module requires the module [Log] and the optional module [Generic].
+This module requires the module [Generic].
 
 The module [Blocks Disposition] can be used to add it in the public sites.
 
@@ -175,7 +175,6 @@ by [Biblibre].
 [Blocks Disposition]: https://gitlab.com/Daniel-KM/Omeka-S-module-BlocksDisposition
 [Clean Url]: https://gitlab.com/Daniel-KM/Omeka-S-module-CleanUrl
 [Generic]: https://gitlab.com/Daniel-KM/Omeka-S-module-Generic
-[Log]: https://gitlab.com/Daniel-KM/Omeka-S-module-Log
 [BulkExport.zip]: https://gitlab.com/Daniel-KM/Omeka-S-module-BulkExport/releases
 [Installing a module]: https://omeka.org/s/docs/user-manual/modules/#installing-modules
 [CSV Import]: https://github.com/omeka-s-modules/CSVImport

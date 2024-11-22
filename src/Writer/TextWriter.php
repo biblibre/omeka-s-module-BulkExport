@@ -13,7 +13,6 @@ class TextWriter extends AbstractFieldsWriter
     protected $paramsFormClass = TextWriterConfigForm::class;
 
     protected $configKeys = [
-        'dirpath',
         'filebase',
         'format_fields',
         'format_generic',
@@ -30,7 +29,6 @@ class TextWriter extends AbstractFieldsWriter
     ];
 
     protected $paramsKeys = [
-        'dirpath',
         'filebase',
         'format_fields',
         'format_generic',
@@ -53,7 +51,7 @@ class TextWriter extends AbstractFieldsWriter
 
     protected function initializeOutput(): self
     {
-        $this->handle = fopen($this->filepath, 'w+');
+        $this->handle = fopen($this->tempFile->getTempPath(), 'w+');
         if ($this->handle) {
             // Prepend the utf-8 bom.
             fwrite($this->handle, chr(0xEF) . chr(0xBB) . chr(0xBF));

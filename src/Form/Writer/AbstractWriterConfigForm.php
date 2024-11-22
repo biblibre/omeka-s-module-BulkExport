@@ -44,19 +44,6 @@ abstract class AbstractWriterConfigForm extends Form
     protected function appendFile(): self
     {
         $this
-            ->add([
-                'name' => 'dirpath',
-                'type' => Element\Text::class,
-                'options' => [
-                    'element_group' => 'export',
-                    'label' => 'Directory', // @translate
-                    'info' => 'This setting allows to store the file in the specified location. It should be writeable by the web server. It may be relative to Omeka root. Available placeholders are: "{label}", "{exporter}", "{export_id}", "{date}", "{time}", "{user_id}", "{username}", "{random}".', // @translate
-                ],
-                'attributes' => [
-                    'id' => 'dirpath',
-                    'placeholder' => 'files/bulk_export/{date}',
-                ],
-            ])
             // Don't use "file" or "filename" because the name is already used.
             ->add([
                 'name' => 'filebase',

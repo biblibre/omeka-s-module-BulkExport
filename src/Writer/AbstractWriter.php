@@ -96,9 +96,9 @@ abstract class AbstractWriter implements WriterInterface, Configurable, Parametr
     ];
 
     /**
-     * @var string
+     * @var \Omeka\File\TempFile
      */
-    protected $filepath;
+    protected $tempFile;
 
     /**
      * @var bool
@@ -119,6 +119,11 @@ abstract class AbstractWriter implements WriterInterface, Configurable, Parametr
      * @var int
      */
     protected $totalEntries;
+
+    /**
+     * @var string
+     */
+    protected $storageId;
 
     /**
      * Writer constructor.
@@ -152,16 +157,6 @@ abstract class AbstractWriter implements WriterInterface, Configurable, Parametr
 
     public function isValid(): bool
     {
-        $this->lastErrorMessage = null;
-        $outputPath = $this->getOutputFilepath();
-        $destinationDir = dirname($outputPath);
-        if (!$this->checkDestinationDir($destinationDir)) {
-            $this->lastErrorMessage = new Message(
-                'Output directory "%s" is not writeable.', // @translate
-                $destinationDir
-            );
-            return false;
-        }
         return true;
     }
 
@@ -220,56 +215,18 @@ abstract class AbstractWriter implements WriterInterface, Configurable, Parametr
 
     abstract public function process(): self;
 
-    /**
-     * Check or create the destination folder.
-     *
-     * @param string $dirPath Absolute path.
-     * @return string|null
-     */
-    protected function checkDestinationDir($dirPath): ?string
-    {
-        if (strpos($dirPath, '../') !== false || strpos($dirPath, '..\\') !== false) {
-            $this->logger->err(
-                'The path should not contain "../".', // @translate
-            );
-            return null;
-        }
-        if (file_exists($dirPath)) {
-            if (!is_dir($dirPath) || !is_writeable($dirPath)) {
-                $this->logger->err(sprintf(
-                    'The destination folder "%s" is not writeable.', // @translate
-                    $dirPath
-                ));
-                return null;
-            }
-        } else {
-            $result = @mkdir($dirPath, 0775, true);
-            if (!$result) {
-                $this->logger->err(sprintf(
-                    'The destination folder "%s" is not writeable.', // @translate
-                    $dirPath
-                ));
-                return null;
-            }
-        }
-        return $dirPath;
-    }
-
     protected function prepareTempFile(): self
     {
-        // TODO Use Omeka factory for temp files.
-        $config = $this->getServiceLocator()->get('Config');
-        $tempDir = $config['temp_dir'] ?: sys_get_temp_dir();
-        $this->filepath = @tempnam($tempDir, 'omk_bke_');
+        $tempFileFactory = $this->getServiceLocator()->get('Omeka\File\TempFileFactory');
+        $this->tempFile = $tempFileFactory->build();
+
         return $this;
     }
 
-    protected function getOutputFilepath(): string
+    protected function getStorageId(): string
     {
-        static $outputFilepath;
-
-        if (is_string($outputFilepath)) {
-            return $outputFilepath;
+        if (isset($this->storageId)) {
+            return $this->storageId;
         }
 
         // Prepare placeholders.
@@ -301,60 +258,15 @@ abstract class AbstractWriter implements WriterInterface, Configurable, Parametr
             '{userid}' => $userId,
         ];
 
-        $config = $this->services->get('Config');
-        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
-        $destinationDir = $basePath . '/bulk_export';
+        $defaultFilebase = $label ? '{label}-{date}-{time}' : '{exporter}-{date}-{time}';
+        $filebase = trim($this->getParam('filebase', '')) ?: $defaultFilebase;
 
-        // The check is done during isValid().
-        $dir = null;
-        $formatDirPath = $this->getParam('dirpath');
-        $hasFormatDirPath = !empty($formatDirPath);
-        if ($hasFormatDirPath) {
-            $dir = str_replace(array_keys($placeholders), array_values($placeholders), $formatDirPath);
-            $dir = trim(rtrim($dir, '/\\ '));
-            if (mb_substr($dir, 0, 1) !== '/') {
-                $dir = OMEKA_PATH . '/' . $dir;
-            }
-            if ($dir && $dir !== '/' && $dir !== '\\') {
-                $destinationDir = $dir;
-            } else {
-                $this->logger->warn(sprintf(
-                    'The specified dir path "%s" is invalid. Using default one.', // @translate
-                    $formatDirPath
-                ));
-            }
-        }
-
-        $formatFilename = $this->getParam('filebase');
-        $hasFormatFilename = !empty($formatFilename);
-
-        $formatFilename = $formatFilename
-            ?: ($label ? '{label}-{date}-{time}' : '{exporter}-{date}-{time}');
-        $extension = $this->getExtension();
-
-        $base = str_replace(array_keys($placeholders), array_values($placeholders), $formatFilename);
-        if (!$base) {
-            $base = $this->stranslator->translate('no-name'); // @translate
-        }
+        $base = str_replace(array_keys($placeholders), array_values($placeholders), $filebase);
 
         // Remove remaining characters in all cases for security and simplicity.
-        $base = $this->slugify($base, true);
+        $this->storageId = $this->slugify($base, true);
 
-        // When the filename is specified, no check for overwrite is done.
-        // In other cases, avoid to override existing files.
-        if ($hasFormatFilename) {
-            $outputFilepath = $destinationDir . '/' . $base . '.' . $extension;
-        } else {
-            // Append an index when needed to avoid issue on very big base.
-            $outputFilepath = null;
-            $i = 0;
-            do {
-                $filename = sprintf('%s%s.%s', $base, $i ? '-' . $i : '', $extension);
-                $outputFilepath = $destinationDir . '/' . $filename;
-            } while (++$i && file_exists($outputFilepath));
-        }
-
-        return $outputFilepath;
+        return $this->storageId;
     }
 
     /**
@@ -381,39 +293,17 @@ abstract class AbstractWriter implements WriterInterface, Configurable, Parametr
 
     protected function saveFile(): self
     {
-        $config = $this->services->get('Config');
-        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
-        $destinationDir = $basePath . '/bulk_export';
+        $storageId = $this->getStorageId();
+        $extension = $this->getExtension();
 
-        // When this is the default dir, store only the partial filename.
-        $outputFilepath = $this->getOutputFilepath();
-        $filename = mb_strpos($outputFilepath, $destinationDir) === 0
-            ? mb_substr($outputFilepath, mb_strlen($destinationDir) + 1)
-            : $outputFilepath;
-
-        try {
-            $result = copy($this->filepath, $outputFilepath);
-            @unlink($this->filepath);
-        } catch (\Exception $e) {
-            throw new \Omeka\Job\Exception\RuntimeException(sprintf(
-                'Export error when saving "%1$s" (temp file: "%2$s"): %3$s',
-                $filename,
-                $this->filepath,
-                $e
-            ));
-        }
-
-        if (!$result) {
-            throw new \Omeka\Job\Exception\RuntimeException(sprintf(
-                'Export error when saving "%1$s" (temp file: "%2$s")',
-                $filename,
-                $this->filepath,
-            ));
-        }
+        $this->tempFile->setStorageId($storageId);
+        $this->tempFile->store('bulk_export', $extension);
+        $this->tempFile->delete();
 
         $params = $this->getParams();
-        $params['filename'] = $filename;
+        $params['filename'] = sprintf('%s.%s', $storageId, $extension);
         $this->setParams($params);
+
         return $this;
     }
 

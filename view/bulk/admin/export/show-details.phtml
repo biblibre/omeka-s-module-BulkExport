@@ -14,8 +14,7 @@ $hyperlink = $plugins->get('hyperlink');
 $comment = $export->comment();
 $status = $translate($export->statusLabel());
 $owner = $export->owner();
-$filename = $export->filename();
-$fileUrl = $filename && $export->isCompleted() ? $export->fileUrl() : '';
+$fileUrl = $export->isCompleted() ? $export->fileUrl() : '';
 $exporter = $export->exporter();
  ?>
 
@@ -27,7 +26,7 @@ $exporter = $export->exporter();
     <?php if ($fileUrl): ?>
     <div class="meta-group">
         <h4><?= $escape($translate('Output file')) ?></h4>
-        <div class="value"><?= $hyperlink($filename, $fileUrl, ['title' => $translate('Get file'), 'download' => ''])?></div>
+        <div class="value"><?= $hyperlink(basename($fileUrl), $fileUrl, ['title' => $translate('Get file'), 'download' => ''])?></div>
     </div>
     <?php endif; ?>
     <div class="meta-group">

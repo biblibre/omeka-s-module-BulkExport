@@ -16,7 +16,6 @@ class OpenDocumentSpreadsheetWriter extends AbstractSpreadsheetWriter
 
     protected $configKeys = [
         'separator',
-        'dirpath',
         'filebase',
         'format_fields',
         'format_generic',
@@ -34,7 +33,6 @@ class OpenDocumentSpreadsheetWriter extends AbstractSpreadsheetWriter
 
     protected $paramsKeys = [
         'separator',
-        'dirpath',
         'filebase',
         'format_fields',
         'format_generic',
@@ -62,17 +60,6 @@ class OpenDocumentSpreadsheetWriter extends AbstractSpreadsheetWriter
             return false;
         }
 
-        $config = $this->getServiceLocator()->get('Config');
-        $tempDir = $config['temp_dir'] ?: sys_get_temp_dir();
-        $tempDir = $this->checkDestinationDir($tempDir);
-        if (!$tempDir) {
-            $this->lastErrorMessage = sprintf(
-                'The temporary folder "%s" does not exist or is not writeable.',
-                $tempDir
-            );
-            return false;
-        }
-
         return parent::isValid();
     }
 
@@ -83,7 +70,7 @@ class OpenDocumentSpreadsheetWriter extends AbstractSpreadsheetWriter
         $this->spreadsheetWriter = WriterEntityFactory::createODSWriter();
         $this->spreadsheetWriter
             ->setTempFolder($tempDir)
-            ->openToFile($this->filepath);
+            ->openToFile($this->tempFile->getTempPath());
         return $this;
     }
 }

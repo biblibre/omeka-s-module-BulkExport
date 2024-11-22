@@ -142,18 +142,6 @@ class Module extends AbstractModule
             );
             throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
         }
-
-        $config = $services->get('Config');
-        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
-        $translator = $services->get('MvcTranslator');
-
-        if (!$this->checkDestinationDir($basePath . '/bulk_export')) {
-            $message = sprintf(
-                $translator->translate('The directory "%s" is not writeable.'),
-                $basePath . '/bulk_export'
-            );
-            throw new ModuleCannotInstallException($message);
-        }
     }
 
     protected function postInstall(): void
@@ -190,9 +178,8 @@ class Module extends AbstractModule
     protected function preUninstall(): void
     {
         if (!empty($_POST['remove-bulk-exports'])) {
-            $config = $this->getServiceLocator()->get('Config');
-            $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
-            $this->rmDir($basePath . '/bulk_export');
+            $exportIds = $api->search('bulk_exports', [], ['returnScalar' => 'id'])->getContent();
+            $api->batchDelete('bulk_exports', $exportsIds, [], ['continueOnError' => true]);
         }
     }
 
@@ -206,8 +193,6 @@ class Module extends AbstractModule
 
         $services = $this->getServiceLocator();
         $t = $services->get('MvcTranslator');
-        $config = $services->get('Config');
-        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
 
         $html = '<p>';
         $html .= '<strong>';
@@ -216,10 +201,7 @@ class Module extends AbstractModule
         $html .= '</p>';
 
         $html .= '<p>';
-        $html .= sprintf(
-            $t->translate('All bulk exports will be removed (folder "%s").'), // @translate
-            $basePath . '/bulk_export'
-        );
+        $html .= $t->translate('All bulk exports will be removed.'); // @translate
         $html .= '</p>';
 
         $html .= '<label><input name="remove-bulk-exports" type="checkbox" form="confirmform">';

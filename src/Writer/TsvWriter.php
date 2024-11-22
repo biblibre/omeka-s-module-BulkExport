@@ -17,7 +17,6 @@ class TsvWriter extends CsvWriter
 
     protected $configKeys = [
         'separator',
-        'dirpath',
         'filebase',
         'format_fields',
         'format_generic',
@@ -35,7 +34,6 @@ class TsvWriter extends CsvWriter
 
     protected $paramsKeys = [
         'separator',
-        'dirpath',
         'filebase',
         'format_fields',
         'format_generic',

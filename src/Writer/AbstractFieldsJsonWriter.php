@@ -52,7 +52,7 @@ abstract class AbstractFieldsJsonWriter extends AbstractFieldsWriter
     {
         parent::initializeOutput();
 
-        $this->handle = fopen($this->filepath, 'w+');
+        $this->handle = fopen($this->tempFile->getTempPath(), 'w+');
         if (!$this->handle) {
             $this->hasError = true;
             $this->logger->err(sprintf(

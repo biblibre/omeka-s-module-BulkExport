@@ -69,7 +69,7 @@ abstract class AbstractSpreadsheetWriter extends AbstractFieldsWriter
                 return $this;
         }
         $this->spreadsheetWriter
-            ->openToFile($this->filepath);
+            ->openToFile($this->tempFile->getTempPath());
         return $this;
     }
 

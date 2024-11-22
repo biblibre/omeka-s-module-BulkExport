@@ -168,24 +168,15 @@ class Export extends AbstractJob
             'o:filename' => $params['filename'],
         ];
         $this->export = $this->api->update('bulk_exports', $this->export->id(), $data, [], ['isPartial' => true])->getContent();
-        $filename = $this->export->filename(true);
+        $filename = $this->export->filename();
         if (!$filename) {
             return $this;
         }
 
         $fileUrl = $this->export->fileUrl();
-        $filesize = $this->export->filesize();
-        if (!$fileUrl) {
-            $this->logger->notice(sprintf(
-                'The export is available locally as specified (size: %s bytes).', // @translate
-                $filesize
-            ));
-            return $this;
-        }
-
         $this->logger->notice(sprintf(
-            'The export is available at %1$s (size: %2$s bytes).', // @translate
-            sprintf('<a href="%1$s" download="%2$s" target="_self">%2$s</a>', $fileUrl, basename($filename)),
+            'The export is available at %s.', // @translate
+            sprintf('<a href="%1$s" download="%2$s" target="_self">%2$s</a>', $fileUrl, $filename),
             $filesize
         ));
 

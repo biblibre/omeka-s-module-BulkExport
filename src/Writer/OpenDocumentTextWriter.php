@@ -37,7 +37,7 @@ class OpenDocumentTextWriter extends AbstractFieldsWriter
     protected function finalizeOutput(): self
     {
         $objWriter = PhpWord\IOFactory::createWriter($this->openDocument, 'ODText');
-        $objWriter->save($this->filepath);
+        $objWriter->save($this->tempFile->getTempPath());
         return $this;
     }
 

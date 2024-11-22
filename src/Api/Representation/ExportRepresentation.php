@@ -69,22 +69,9 @@ class ExportRepresentation extends AbstractEntityRepresentation
     /**
      * Get the filename where data are stored.
      */
-    public function filename(bool $absolute = false): ?string
+    public function filename(): ?string
     {
-        $filename = $this->resource->getFilename();
-        if (!$filename) {
-            return null;
-        }
-        if (!$absolute) {
-            return basename($filename);
-        }
-        if (mb_substr($filename, 0, 1) === '/') {
-            return $filename;
-        }
-        // Relative are inside "files/bulk_export/".
-        $config = $this->services->get('Config');
-        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
-        return $basePath . '/bulk_export/' . $filename;
+        return $this->resource->getFilename();
     }
 
     /**
@@ -94,34 +81,16 @@ class ExportRepresentation extends AbstractEntityRepresentation
      */
     public function fileUrl(): ?string
     {
-        $filepath = $this->filename(true);
+        $filepath = $this->filename();
         if (!$filepath) {
             return null;
         }
 
-        // Relative are inside "files/bulk_export/".
-        $config = $this->services->get('Config');
-        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
-        if (mb_strpos($filepath, $basePath . '/') !== 0) {
+        if (str_starts_with($filepath, '/')) {
             return null;
         }
 
-        // The path between store and filename is the prefix.
-        $dir = pathinfo($filepath, PATHINFO_DIRNAME);
-        $filename = pathinfo($filepath, PATHINFO_FILENAME);
-        $extension = pathinfo($filepath, PATHINFO_EXTENSION);
-        return $this->getFileUrl(mb_substr($dir, mb_strlen($basePath) + 1), $filename, $extension);
-    }
-
-    /**
-     * Get the file size.
-     */
-    public function filesize(): ?int
-    {
-        $filepath = $this->filename(true);
-        return $filepath
-            ? filesize($filepath)
-            : null;
+        return $this->getFileUrl('bulk_export', $filepath);
     }
 
     public function params(): array
